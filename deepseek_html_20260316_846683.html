@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>BLACK DEATH</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Tajawal', sans-serif; }
+        body { min-height: 100vh; background: #030506; color: white; padding: 20px; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 30%, rgba(255,51,102,0.08) 0%, transparent 30%), radial-gradient(circle at 80% 70%, rgba(255,51,102,0.08) 0%, transparent 30%); z-index: -1; }
+        .dashboard { max-width: 1600px; margin: 0 auto; background: rgba(10,12,18,0.95); backdrop-filter: blur(15px); border-radius: 30px; padding: 30px; box-shadow: 0 30px 50px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,51,102,0.2); border: 1px solid rgba(255,51,102,0.3); }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; padding: 15px 25px; background: rgba(255,51,102,0.05); border-radius: 20px; border: 1px solid rgba(255,51,102,0.2); }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo { width: 65px; height: 65px; background: linear-gradient(135deg, #ff3366, #b71c1c); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: white; box-shadow: 0 10px 25px rgba(255,51,102,0.4); }
+        .title h1 { font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #fff, #ffb3c6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .title p { color: #ff3366; font-size: 14px; }
+        .factions-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .faction-tab { background: rgba(255,51,102,0.1); border: 1px solid rgba(255,51,102,0.3); color: white; padding: 15px 25px; border-radius: 15px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
+        .faction-tab.active { background: #ff3366; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(255,51,102,0.4); }
+        .faction-tab .member-count { background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 20px; font-size: 12px; margin-right: 10px; }
+        .faction-panel { display: none; animation: fadeIn 0.5s; }
+        .faction-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .stats-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: rgba(20,23,31,0.8); border-radius: 15px; padding: 15px; text-align: center; border: 1px solid rgba(255,51,102,0.2); transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); border-color: #ff3366; }
+        .stat-card i { color: #ff3366; font-size: 24px; margin-bottom: 10px; }
+        .stat-number { font-size: 24px; font-weight: 800; color: white; }
+        .stat-label { font-size: 12px; color: #9a9fa8; }
+        .faction-content { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 30px; }
+        .faction-info { background: rgba(20,23,31,0.8); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,51,102,0.2); }
+        .faction-info h3 { color: #ff3366; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #9a9fa8; }
+        .info-value { color: #ff3366; font-weight: 600; }
+        .members-section { background: rgba(20,23,31,0.8); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,51,102,0.2); }
+        .members-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .members-header h3 { color: #ff3366; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        .add-member-btn { background: #ff3366; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .add-member-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(255,51,102,0.4); }
+        .members-list { max-height: 400px; overflow-y: auto; }
+        .member-card { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid rgba(255,51,102,0.2); transition: all 0.3s; }
+        .member-card:hover { border-color: #ff3366; transform: translateX(-5px); }
+        .member-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .member-name { font-size: 16px; font-weight: 700; color: white; }
+        .member-id { color: #ff3366; font-size: 14px; }
+        .member-details { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 10px 0; font-size: 13px; color: #9a9fa8; }
+        .member-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .member-action-btn { background: rgba(255,51,102,0.1); border: 1px solid rgba(255,51,102,0.3); color: white; padding: 5px 15px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.3s; }
+        .member-action-btn:hover { background: #ff3366; }
+        .member-action-btn.delete:hover { background: #dc3545; }
+        .member-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 3000; align-items: center; justify-content: center; }
+        .member-modal.active { display: flex; }
+        .modal-content { background: rgba(20,23,31,0.98); border-radius: 25px; padding: 30px; max-width: 500px; width: 90%; border: 2px solid #ff3366; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,51,102,0.3); }
+        .modal-header h3 { color: #ff3366; font-size: 22px; }
+        .close-modal { background: none; border: none; color: white; font-size: 28px; cursor: pointer; }
+        .events-section { margin-top: 30px; background: rgba(20,23,31,0.8); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,51,102,0.2); }
+        .events-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .events-header h3 { color: #ff3366; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        .clear-events-btn { background: rgba(255,51,102,0.1); border: 1px solid #ff3366; color: #ff3366; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+        .clear-events-btn:hover { background: #ff3366; color: white; }
+        .events-list { max-height: 200px; overflow-y: auto; }
+        .event-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; }
+        .event-time { color: #ff3366; font-size: 12px; min-width: 60px; }
+        .event-text { color: white; flex: 1; }
+        .edit-trigger { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; background: #ff3366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; cursor: pointer; box-shadow: 0 10px 30px rgba(255,51,102,0.5); border: 3px solid white; z-index: 1000; transition: all 0.3s; }
+        .edit-trigger:hover { transform: scale(1.1) rotate(90deg); }
+        .edit-sidebar { position: fixed; top: 0; left: -450px; width: 420px; height: 100vh; background: rgba(8,10,15,0.98); backdrop-filter: blur(30px); border-left: 3px solid #ff3366; box-shadow: 20px 0 50px rgba(0,0,0,0.8); z-index: 2000; transition: left 0.4s; padding: 30px; overflow-y: auto; }
+        .edit-sidebar.open { left: 0; }
+        .edit-sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #ff3366; }
+        .edit-sidebar-header h3 { color: #ff3366; font-size: 26px; }
+        .close-sidebar { background: none; border: none; color: white; font-size: 32px; cursor: pointer; }
+        .webhook-input { margin-bottom: 15px; }
+        .webhook-input label { display: block; color: #9a9fa8; margin-bottom: 5px; }
+        .webhook-input input { width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,51,102,0.3); border-radius: 8px; color: white; direction: ltr; }
+        .save-btn { background: #ff3366; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .notification-popup { position: fixed; top: 30px; right: 30px; background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 20px 30px; border-radius: 15px; display: flex; align-items: center; gap: 15px; z-index: 3000; animation: slideIn 0.4s ease; border-right: 5px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .notification-popup.error { background: linear-gradient(135deg, #dc3545, #c82333); }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3,1fr); } .faction-content { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div class="logo-area">
+                <div class="logo">B</div>
+                <div class="title">
+                    <h1>BLACK DEATH</h1>
+                    <p>النظام المستقل - موقع + بوت</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="factions-tabs" id="mainTabs">
+            <div class="faction-tab active" data-main="resistance"><i class="fas fa-shield-halved"></i>المقاومة<span class="member-count" id="resistanceCount">0</span></div>
+            <div class="faction-tab" data-main="server"><i class="fas fa-server"></i>الخادم<span class="member-count" id="serverCount">0</span></div>
+            <div class="faction-tab" data-main="blacklist"><i class="fas fa-ban"></i>بلاك ليست<span class="member-count" id="blacklistCount">0</span></div>
+            <div class="faction-tab" data-main="resign"><i class="fas fa-sign-out-alt"></i>استقالات<span class="member-count" id="resignCount">0</span></div>
+            <div class="faction-tab" data-main="vacation"><i class="fas fa-umbrella-beach"></i>إجازات<span class="member-count" id="vacationCount">0</span></div>
+            <div class="faction-tab" data-main="warnings"><i class="fas fa-exclamation-triangle"></i>تحذيرات<span class="member-count" id="warningsCount">0</span></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number" id="totalMembers">0</div><div class="stat-label">إجمالي</div></div>
+            <div class="stat-card"><i class="fas fa-user-check"></i><div class="stat-number" id="activeMembers">0</div><div class="stat-label">نشطاء</div></div>
+            <div class="stat-card"><i class="fas fa-user-clock"></i><div class="stat-number" id="inactiveMembers">0</div><div class="stat-label">غير نشطاء</div></div>
+            <div class="stat-card"><i class="fas fa-calendar-plus"></i><div class="stat-number" id="todayMembers">0</div><div class="stat-label">اليوم</div></div>
+            <div class="stat-card"><i class="fas fa-chart-line"></i><div class="stat-number" id="weeklyGrowth">0</div><div class="stat-label">نمو</div></div>
+            <div class="stat-card"><i class="fas fa-clock"></i><div class="stat-number" id="lastUpdate">-</div><div class="stat-label">آخر تحديث</div></div>
+        </div>
+
+        <div id="factionsContent"></div>
+
+        <div class="events-section">
+            <div class="events-header">
+                <h3><i class="fas fa-history"></i> آخر الأحداث</h3>
+                <button class="clear-events-btn" onclick="clearEvents()"><i class="fas fa-trash"></i> مسح</button>
+            </div>
+            <div class="events-list" id="eventsList"></div>
+        </div>
+    </div>
+
+    <div class="edit-trigger" onclick="toggleEditSidebar()"><i class="fas fa-cog"></i></div>
+
+    <div class="edit-sidebar" id="editSidebar">
+        <div class="edit-sidebar-header">
+            <h3><i class="fas fa-edit"></i> إعدادات</h3>
+            <button class="close-sidebar" onclick="toggleEditSidebar()">&times;</button>
+        </div>
+        
+        <div class="edit-sidebar-header">
+            <h3><i class="fas fa-edit"></i> إعدادات Webhooks</h3>
+        </div>
+        
+        <div class="webhook-input"><label>📝 تسجيل</label><input type="url" id="webhookRegister" placeholder="رابط Webhook"></div>
+        <div class="webhook-input"><label>📅 مغادرة</label><input type="url" id="webhookLeave" placeholder="رابط Webhook"></div>
+        <div class="webhook-input"><label>📥 استقالات</label><input type="url" id="webhookResign" placeholder="رابط Webhook"></div>
+        <div class="webhook-input"><label>📁 معلومات</label><input type="url" id="webhookInfo" placeholder="رابط Webhook"></div>
+        <div class="webhook-input"><label>⚠️ تحذيرات</label><input type="url" id="webhookWarnings" placeholder="رابط Webhook"></div>
+        <div class="webhook-input"><label>⛔ بلاك ليست</label><input type="url" id="webhookBlacklist" placeholder="رابط Webhook"></div>
+        <div class="webhook-input"><label>⬆️ ترقيات</label><input type="url" id="webhookPromotions" placeholder="رابط Webhook"></div>
+        <div class="webhook-input"><label>📊 إحصائيات</label><input type="url" id="webhookStats" placeholder="رابط Webhook"></div>
+
+        <div class="webhook-input"><label>اسم البوت</label><input type="text" id="botName" value="BLACK DEATH"></div>
+        <div class="webhook-input"><label>لون الإشعار</label><input type="color" id="embedColor" value="#ff3366"></div>
+        
+        <button class="save-btn" onclick="saveWebhooks()"><i class="fas fa-save"></i> حفظ</button>
+    </div>
+
+    <div class="member-modal" id="memberModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">إضافة عضو</h3>
+                <button class="close-modal" onclick="closeMemberModal()">&times;</button>
+            </div>
+            
+            <input type="hidden" id="editMemberId">
+            <input type="hidden" id="editFaction">
+            <input type="hidden" id="editFactionType">
+            
+            <div class="webhook-input"><label>الاسم</label><input type="text" id="memberName" placeholder="اسم الشخصية"></div>
+            <div class="webhook-input"><label>الايدي</label><input type="text" id="memberId" placeholder="12345"></div>
+            <div class="webhook-input"><label>الرتبة</label><input type="text" id="memberRank" placeholder="قائد"></div>
+            <div class="webhook-input"><label>الحالة</label>
+                <select id="memberStatus">
+                    <option value="نشط">نشط</option>
+                    <option value="غير نشط">غير نشط</option>
+                    <option value="إجازة">إجازة</option>
+                </select>
+            </div>
+            <div class="webhook-input"><label>ملاحظات</label><input type="text" id="memberNotes" placeholder="ملاحظات"></div>
+            
+            <button class="save-btn" onclick="saveMember()"><i class="fas fa-save"></i> حفظ</button>
+        </div>
+    </div>
+
+    <div id="notification-container"></div>
+
+    <script>
+        let factionsData = {
+            resistance: {
+                jenin: { name: 'كتيبة جنين', leader: 'أبو محمد', members: [] },
+                hamas: { name: 'كتيبة حماس', leader: 'أبو العز', members: [] },
+                lion: { name: 'عرين الأسود', leader: 'أسد', members: [] }
+            },
+            server: {
+                occupation: { name: 'جيش الاحتلال', leader: 'جنرال', members: [] },
+                police: { name: 'الشرطة', leader: 'عقيد', members: [] },
+                yamam: { name: 'وحدة اليمام', leader: 'قائد', members: [] },
+                occPolice: { name: 'شرطة الاحتلال', leader: 'ضابط', members: [] },
+                ambulance: { name: 'الاسعاف', leader: 'مسعف', members: [] },
+                mechanic: { name: 'الميكانيك', leader: 'مهندس', members: [] }
+            },
+            blacklist: [],
+            resignations: [],
+            vacations: [],
+            warnings: []
+        };
+
+        let events = [];
+        let webhooks = { register: '', leave: '', resign: '', info: '', warnings: '', blacklist: '', promotions: '', stats: '' };
+        let currentTab = 'resistance';
+        let currentSubTab = 'jenin';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedData();
+            setupTabs();
+            renderCurrentFaction();
+            updateStats();
+            renderEvents();
+            loadFromServer();
+        });
+
+        async function loadFromServer() {
+            try {
+                const response = await fetch('data.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    factionsData = data;
+                    saveData();
+                    updateStats();
+                    renderCurrentFaction();
+                    renderEvents();
+                    showNotification('✅ تم', 'تم تحميل البيانات من السيرفر');
+                }
+            } catch (error) {
+                console.log('⚠️ لا يوجد ملف بيانات');
+            }
+        }
+
+        async function saveToServer() {
+            try {
+                const response = await fetch('api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(factionsData)
+                });
+                if (response.ok) {
+                    showNotification('✅ تم', 'تم حفظ البيانات في السيرفر');
+                }
+            } catch (error) {
+                console.error('❌ فشل الحفظ:', error);
+            }
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('[data-main]').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('[data-main]').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTab = this.dataset.main;
+                    
+                    if (currentTab === 'resistance' || currentTab === 'server') {
+                        if (currentTab === 'resistance') currentSubTab = 'jenin';
+                        else currentSubTab = 'occupation';
+                        renderCurrentFaction();
+                    } else {
+                        renderListFaction(currentTab);
+                    }
+                });
+            });
+        }
+
+        function renderCurrentFaction() {
+            const content = document.getElementById('factionsContent');
+            if (currentTab === 'resistance') {
+                content.innerHTML = `<div class="factions-tabs" id="subTabs"><div class="faction-tab active" data-sub="jenin">كتيبة جنين</div><div class="faction-tab" data-sub="hamas">كتيبة حماس</div><div class="faction-tab" data-sub="lion">عرين الأسود</div></div><div id="factionDisplay"></div>`;
+                setTimeout(() => {
+                    setupSubTabs('resistance');
+                    updateFactionDisplay('resistance', currentSubTab);
+                }, 100);
+            } else if (currentTab === 'server') {
+                content.innerHTML = `<div class="factions-tabs" id="subTabs"><div class="faction-tab active" data-sub="occupation">جيش الاحتلال</div><div class="faction-tab" data-sub="police">الشرطة</div><div class="faction-tab" data-sub="yamam">وحدة اليمام</div><div class="faction-tab" data-sub="occPolice">شرطة الاحتلال</div><div class="faction-tab" data-sub="ambulance">الاسعاف</div><div class="faction-tab" data-sub="mechanic">الميكانيك</div></div><div id="factionDisplay"></div>`;
+                setTimeout(() => {
+                    setupSubTabs('server');
+                    updateFactionDisplay('server', currentSubTab);
+                }, 100);
+            }
+        }
+
+        function renderListFaction(type) {
+            const lists = {
+                blacklist: { title: 'البلاك لست', icon: 'ban', data: factionsData.blacklist, color: '#000000' },
+                resign: { title: 'الاستقالات', icon: 'sign-out-alt', data: factionsData.resignations, color: '#ff0000' },
+                vacation: { title: 'الإجازات', icon: 'umbrella-beach', data: factionsData.vacations, color: '#00ccff' },
+                warnings: { title: 'التحذيرات', icon: 'exclamation-triangle', data: factionsData.warnings, color: '#ffaa00' }
+            };
+            const list = lists[type];
+            if (!list) return;
+            
+            document.getElementById('factionsContent').innerHTML = `
+                <div class="faction-content">
+                    <div class="faction-info">
+                        <h3><i class="fas fa-${list.icon}" style="color: ${list.color};"></i> ${list.title}</h3>
+                        <div class="info-row"><span class="info-label">العدد</span><span class="info-value" style="color: ${list.color};">${list.data.length}</span></div>
+                    </div>
+                    <div class="members-section">
+                        <div class="members-header">
+                            <h3><i class="fas fa-list"></i> القائمة</h3>
+                            <button class="add-member-btn" onclick="openAddToList('${type}')" style="background: ${list.color};"><i class="fas fa-plus"></i> إضافة</button>
+                        </div>
+                        <div class="members-list">
+                            ${list.data.length === 0 ? '<div class="member-card">لا يوجد عناصر</div>' : 
+                              list.data.map((item, index) => `
+                                <div class="member-card">
+                                    <div class="member-card-header">
+                                        <span class="member-name">${item.name}</span>
+                                        <span class="member-id" style="color: ${list.color};">${item.reason || ''}</span>
+                                    </div>
+                                    ${item.faction ? `<div class="member-details">الفاكشن: ${item.faction}</div>` : ''}
+                                    ${item.days ? `<div class="member-details">المدة: ${item.days} يوم</div>` : ''}
+                                    ${item.by ? `<div class="member-details">بواسطة: ${item.by}</div>` : ''}
+                                    <div class="member-actions">
+                                        <button class="member-action-btn" onclick="editListItem('${type}', ${index})"><i class="fas fa-edit"></i> تعديل</button>
+                                        <button class="member-action-btn delete" onclick="deleteListItem('${type}', ${index})"><i class="fas fa-trash"></i> حذف</button>
+                                    </div>
+                                </div>
+                              `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupSubTabs(main) {
+            document.querySelectorAll('#subTabs .faction-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('#subTabs .faction-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSubTab = this.dataset.sub;
+                    updateFactionDisplay(main, currentSubTab);
+                });
+            });
+        }
+
+        function updateFactionDisplay(main, sub) {
+            const faction = factionsData[main][sub];
+            const display = document.getElementById('factionDisplay');
+            if (!display) return;
+            
+            display.innerHTML = `
+                <div class="faction-content">
+                    <div class="faction-info">
+                        <h3><i class="fas fa-info-circle"></i> معلومات ${faction.name}</h3>
+                        <div class="info-row"><span class="info-label">القائد</span><span class="info-value">${faction.leader}</span></div>
+                        <div class="info-row"><span class="info-label">عدد الأعضاء</span><span class="info-value">${faction.members.length}</span></div>
+                        <div class="info-row"><span class="info-label">النشطاء</span><span class="info-value">${faction.members.filter(m => m.status === 'نشط').length}</span></div>
+                        <div class="info-row"><span class="info-label">غير النشطاء</span><span class="info-value">${faction.members.filter(m => m.status === 'غير نشط').length}</span></div>
+                    </div>
+                    <div class="members-section">
+                        <div class="members-header">
+                            <h3><i class="fas fa-users"></i> قائمة الأعضاء</h3>
+                            <button class="add-member-btn" onclick="openAddMember('${main}', '${sub}')"><i class="fas fa-plus"></i> إضافة</button>
+                        </div>
+                        <div class="members-list">
+                            ${faction.members.length === 0 ? '<div class="member-card">لا يوجد أعضاء</div>' :
+                              faction.members.map((member, index) => `
+                                <div class="member-card">
+                                    <div class="member-card-header">
+                                        <span class="member-name">${member.name}</span>
+                                        <span class="member-id">#${member.id}</span>
+                                    </div>
+                                    <div class="member-details">
+                                        <span>الرتبة: ${member.rank || 'عضو'}</span>
+                                        <span>الحالة: ${member.status || 'نشط'}</span>
+                                    </div>
+                                    <div class="member-actions">
+                                        <button class="member-action-btn" onclick="editMember('${main}', '${sub}', ${index})"><i class="fas fa-edit"></i> تعديل</button>
+                                        <button class="member-action-btn delete" onclick="deleteMember('${main}', '${sub}', ${index})"><i class="fas fa-trash"></i> حذف</button>
+                                    </div>
+                                </div>
+                              `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openAddMember(main, sub) {
+            document.getElementById('modalTitle').textContent = 'إضافة عضو';
+            document.getElementById('editMemberId').value = '';
+            document.getElementById('memberName').value = '';
+            document.getElementById('memberId').value = '';
+            document.getElementById('memberRank').value = '';
+            document.getElementById('memberStatus').value = 'نشط';
+            document.getElementById('memberNotes').value = '';
+            document.getElementById('editFaction').value = sub;
+            document.getElementById('editFactionType').value = main;
+            document.getElementById('memberModal').classList.add('active');
+        }
+
+        function editMember(main, sub, index) {
+            const member = factionsData[main][sub].members[index];
+            document.getElementById('modalTitle').textContent = 'تعديل عضو';
+            document.getElementById('editMemberId').value = index;
+            document.getElementById('memberName').value = member.name;
+            document.getElementById('memberId').value = member.id;
+            document.getElementById('memberRank').value = member.rank || '';
+            document.getElementById('memberStatus').value = member.status || 'نشط';
+            document.getElementById('memberNotes').value = member.notes || '';
+            document.getElementById('editFaction').value = sub;
+            document.getElementById('editFactionType').value = main;
+            document.getElementById('memberModal').classList.add('active');
+        }
+
+        function deleteMember(main, sub, index) {
+            if (!confirm('حذف العضو؟')) return;
+            const member = factionsData[main][sub].members[index];
+            factionsData[main][sub].members.splice(index, 1);
+            addEvent('🗑️ حذف', `تم حذف ${member.name}`);
+            saveData();
+            saveToServer();
+            updateFactionDisplay(main, sub);
+            updateStats();
+        }
+
+        function saveMember() {
+            const main = document.getElementById('editFactionType').value;
+            const sub = document.getElementById('editFaction').value;
+            const editId = document.getElementById('editMemberId').value;
+            
+            const member = {
+                name: document.getElementById('memberName').value,
+                id: document.getElementById('memberId').value,
+                rank: document.getElementById('memberRank').value,
+                status: document.getElementById('memberStatus').value,
+                notes: document.getElementById('memberNotes').value,
+                joinDate: new Date().toISOString()
+            };
+
+            if (!member.name || !member.id) return showNotification('خطأ', 'الاسم والايدي مطلوبان', 'error');
+
+            if (editId !== '') {
+                factionsData[main][sub].members[editId] = member;
+                addEvent('✏️ تعديل', `تم تعديل ${member.name}`);
+            } else {
+                factionsData[main][sub].members.push(member);
+                addEvent('➕ إضافة', `تم إضافة ${member.name}`);
+            }
+
+            closeMemberModal();
+            saveData();
+            saveToServer();
+            updateFactionDisplay(main, sub);
+            updateStats();
+        }
+
+        function openAddToList(type) {
+            let name = prompt('الاسم:');
+            if (!name) return;
+            
+            let extra = {};
+            if (type === 'resign') {
+                let faction = prompt('الفاكشن:');
+                let reason = prompt('السبب:');
+                extra = { faction, reason };
+            } else if (type === 'vacation') {
+                let days = prompt('المدة (أيام):');
+                let reason = prompt('السبب:');
+                extra = { days, reason };
+            } else {
+                let reason = prompt('التفاصيل:');
+                extra = { reason };
+            }
+            
+            factionsData[type].push({ name, ...extra, date: new Date().toISOString() });
+            addEvent('📝 إضافة', `تم إضافة ${name}`);
+            saveData();
+            saveToServer();
+            renderListFaction(type);
+            updateStats();
+        }
+
+        function editListItem(type, index) {
+            let newName = prompt('الاسم الجديد:', factionsData[type][index].name);
+            if (newName) { 
+                factionsData[type][index].name = newName; 
+                addEvent('✏️ تعديل', `تم تعديل ${newName}`); 
+                saveData(); 
+                saveToServer();
+                renderListFaction(type); 
+            }
+        }
+
+        function deleteListItem(type, index) {
+            if (!confirm('حذف؟')) return;
+            let item = factionsData[type][index];
+            factionsData[type].splice(index, 1);
+            addEvent('🗑️ حذف', `تم حذف ${item.name}`);
+            saveData(); 
+            saveToServer();
+            renderListFaction(type); 
+            updateStats();
+        }
+
+        function getListName(type) {
+            return { blacklist: 'البلاك لست', resign: 'الاستقالات', vacation: 'الإجازات', warnings: 'التحذيرات' }[type] || '';
+        }
+
+        function updateStats() {
+            let total = 0, active = 0;
+            for (let k in factionsData.resistance) {
+                total += factionsData.resistance[k].members.length;
+                active += factionsData.resistance[k].members.filter(m => m.status === 'نشط').length;
+            }
+            for (let k in factionsData.server) {
+                total += factionsData.server[k].members.length;
+                active += factionsData.server[k].members.filter(m => m.status === 'نشط').length;
+            }
+
+            document.getElementById('totalMembers').textContent = total;
+            document.getElementById('activeMembers').textContent = active;
+            document.getElementById('inactiveMembers').textContent = total - active;
+            document.getElementById('resistanceCount').textContent = Object.values(factionsData.resistance).reduce((a, b) => a + b.members.length, 0);
+            document.getElementById('serverCount').textContent = Object.values(factionsData.server).reduce((a, b) => a + b.members.length, 0);
+            document.getElementById('blacklistCount').textContent = factionsData.blacklist.length;
+            document.getElementById('resignCount').textContent = factionsData.resignations.length;
+            document.getElementById('vacationCount').textContent = factionsData.vacations.length;
+            document.getElementById('warningsCount').textContent = factionsData.warnings.length;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ar-EG');
+        }
+
+        function addEvent(t, d) { events.unshift({ type: t, details: d, time: new Date().toLocaleTimeString('ar-EG') }); if (events.length > 50) events.pop(); renderEvents(); saveData(); }
+        function renderEvents() { document.getElementById('eventsList').innerHTML = events.length ? events.map(e => `<div class="event-item"><span class="event-time">${e.time}</span><span class="event-text">${e.details}</span></div>`).join('') : '<div class="event-item">لا توجد أحداث</div>'; }
+        function clearEvents() { if (confirm('مسح الأحداث؟')) { events = []; renderEvents(); saveData(); } }
+        function saveData() { localStorage.setItem('factionsData', JSON.stringify({ factions: factionsData, events, webhooks })); }
+        function loadSavedData() {
+            let saved = localStorage.getItem('factionsData');
+            if (saved) {
+                let d = JSON.parse(saved);
+                factionsData = d.factions || factionsData;
+                events = d.events || [];
+                webhooks = d.webhooks || webhooks;
+                Object.keys(webhooks).forEach(k => { let e = document.getElementById(`webhook${k.charAt(0).toUpperCase() + k.slice(1)}`); if (e) e.value = webhooks[k] || ''; });
+            }
+        }
+        function saveWebhooks() {
+            ['register','leave','resign','info','warnings','blacklist','promotions','stats'].forEach(k => webhooks[k] = document.getElementById(`webhook${k.charAt(0).toUpperCase() + k.slice(1)}`).value);
+            saveData(); showNotification('✅ تم', 'تم حفظ الإعدادات'); toggleEditSidebar();
+        }
+        function toggleEditSidebar() { document.getElementById('editSidebar').classList.toggle('open'); }
+        function closeMemberModal() { document.getElementById('memberModal').classList.remove('active'); }
+        function showNotification(t, m, type = 'success') { let n = document.createElement('div'); n.className = `notification-popup ${type === 'error' ? 'error' : ''}`; n.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><div><div style="font-weight:800">${t}</div><div style="font-size:14px">${m}</div></div>`; document.getElementById('notification-container').appendChild(n); setTimeout(() => n.remove(), 4000); }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { document.getElementById('editSidebar').classList.remove('open'); document.getElementById('memberModal').classList.remove('active'); } });
+    </script>
+</body>
+</html>
